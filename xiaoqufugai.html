@@ -1,0 +1,116 @@
+<!DOCTYPE html>    
+<html>    
+<head>    
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />    
+<style type="text/css">    
+body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}    
+#map {width: 100%; height:500px;}    
+#result {width:100%;font-size:12px;}    
+#output {padding:10px;font-size:13px;background:#f6f6f6;border-top:1px solid #ccc;}    
+</style>    
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=LJzazqiPajHEsX9egDgipu2rJNm9FocS"></script>    
+<script type="text/javascript" src="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>    
+<script type="text/javascript" src="http://api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.js"></script>    
+<script type="text/javascript" src="http://api.map.baidu.com/library/GeoUtils/1.2/src/GeoUtils_min.js"></script>
+<link rel="stylesheet" href="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" />    
+<title>绘制区域后显示小区</title>    
+</head>    
+<body>    
+
+<div id="map"></div>    
+<div id="result">    
+    <input type="button" value="画多边形" onclick="draw(BMAP_DRAWING_POLYGON)" />    
+    <!-- <input type="button" value="画矩形" onclick="draw(BMAP_DRAWING_RECTANGLE)" />     -->
+    <input type="button" value="清除覆盖物" onclick="clearAll()" />    
+</div>
+<div id="searchBox">
+        <input type="text" id="keyword" placeholder="请输入地点，例如：深圳宝安中心区" style="width:250px;"/>
+        <input type="button" value="搜索" onclick="searchPlace()" />
+</div>
+<div id="schoolBox" style="margin:8px 0;">
+    学区名称：<input type="text" id="schoolName" placeholder="请输入学区名称" style="width:180px;"/>
+</div>    
+<div id="output">学区的polygon</div>    
+
+<script type="text/javascript">    
+// ...existing code...
+function $(id){return document.getElementById(id);}    
+var map = new BMap.Map('map');    
+var center = new BMap.Point(113.948913,22.530844);    
+map.centerAndZoom(center, 14);    
+map.enableScrollWheelZoom();    
+
+var overlays = [];    
+var shouldSearchAfterDraw = false; // 声明标志变量
+
+// 样式
+var styleOptions = {strokeColor:"red", fillColor:"red", strokeWeight:3, strokeOpacity:0.8, fillOpacity:0.3};
+//搜索功能
+var localSearch = new BMap.LocalSearch(map, {
+    renderOptions: {map: map, autoViewport: true}
+});
+
+function searchPlace(){
+    var keyword = $("keyword").value.trim();
+    if(!keyword){
+        alert("请输入要搜索的地名！");
+        return;
+    }
+    localSearch.search(keyword);
+}
+// 绘制管理器
+var drawingManager = new BMapLib.DrawingManager(map, {
+    isOpen: false,
+    enableDrawingTool: true,
+    drawingToolOptions: {anchor: BMAP_ANCHOR_TOP_RIGHT, offset: new BMap.Size(5,5)},
+    polygonOptions: styleOptions,
+    rectangleOptions: styleOptions
+});
+
+drawingManager.addEventListener('overlaycomplete', function(e){
+    overlays.push(e.overlay);
+    drawingManager.close(); // 绘制完成后自动关闭绘图模式
+    if (shouldSearchAfterDraw) {
+        alert("已完成绘制，开始搜索小区...");
+        searchCommunitiesInPolygon(e.overlay);
+        shouldSearchAfterDraw = false; // 重置标志
+    }
+});
+
+// 绘制函数
+function draw(type){
+    drawingManager.open();
+    drawingManager.setDrawingMode(type);
+    shouldSearchAfterDraw = (type === BMAP_DRAWING_POLYGON);
+}
+
+// 清除覆盖物
+function clearAll(){
+    for(var i = 0; i < overlays.length; i++){ map.removeOverlay(overlays[i]); }
+    overlays.length = 0;
+    document.getElementById("output").innerHTML = "已清空覆盖物。";
+}
+
+
+function searchCommunitiesInPolygon(polygon){
+    var path = polygon.getPath();
+    var coords = path.map(function(pt){
+        return {lng: pt.lng, lat: pt.lat};
+    });
+    // 获取学区名称
+    var schoolName = document.getElementById("schoolName").value.trim();
+    // 构建包含学区名称的对象
+    var exportObj = {
+        school: schoolName,
+        polygon: coords
+    };
+    var jsonText = JSON.stringify(exportObj, null, 2);
+
+    document.getElementById("output").innerHTML = 
+        "<b>多边形顶点坐标(JSON)：</b><br/><pre style='font-size:12px;'>" + jsonText + "</pre>";
+}
+
+</script>    
+</body>    
+</html>
