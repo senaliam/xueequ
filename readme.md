@@ -7,24 +7,25 @@
 
 - 在地图上自由绘制多边形，表示学区范围
 - 输入学区名称，导出包含学区名称和多边形顶点的JSON数据
+- 根据json记录的polygon数据搜索在其中的小区(school_to_xuequ.py)
 ---
 
 ## 使用方法
 
 1. **准备环境**
-   - 推荐使用 [VS Code](https://code.visualstudio.com/) 并安装 Live Server 插件
-   - 不要直接用浏览器打开 HTML 文件（file://），否则地图API可能无法正常加载。
+     申请百度js服务的ak
+     ![alt text](image-2.png)
+     复制AK替换：<script type="text/javascript" src="https://api.map.baidu.com/api?你的ak"></script>   
+   - 使用 [VS Code](https://code.visualstudio.com/) 并安装 Live Server 插件.不要直接用浏览器打开 HTML 文件（file://），否则地图API可能无法正常加载。
 
 2. **运行项目**
    - 用 Live Server 或其它本地服务器启动项目根目录。即鼠标右键并点击“open with live server”
    - 在浏览器访问 `http://localhost:端口/xiaoqufugai.html`。
 
 3. **操作流程**
-   - 在页面输入学区名称。
-
+   - 输入学区名称。可以用搜索框辅助地点寻找过程
    - 点击“画多边形”按钮，在地图上绘制学区范围。
-   - 绘制完成后，页面下方会显示该多边形的顶点坐标（JSON格式），包含学区名称字段。
-   - 可复制JSON数据用于后续处理。
+   - 绘制完成后，页面下方会显示该多边形的顶点坐标（JSON格式），包含学区名称字段。复制JSON数据用于后续处理。
 
 ---
 
@@ -59,12 +60,12 @@
 with open('baoan.json', encoding='utf-8') as f:
     data = json.load(f)
 中'baoan.json'文件的命名，与‘'{学校名称}'.json’对应
-将一个学区内的学校的学区整理为一个excel文档
+将分配搜索的学校的学区整理为一个excel文档
 ---
 
 ## 依赖
 
 - [百度地图API v2.0](https://lbsyun.baidu.com/)
-- DrawingManager、GeoUtils 等百度地图官方扩展库
+- pip install pandas shapely openpyxl
 
 ---
