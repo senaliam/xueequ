@@ -6,7 +6,7 @@ import json
 df = pd.read_excel('深圳小区.xlsx')  # building_name, lat, lon
 
 # 2. 读取学校学区边界
-with open('baoan.json', encoding='utf-8') as f:
+with open('baocheng.json', encoding='utf-8') as f:
     data = json.load(f)
 
 school_name = data['school']
